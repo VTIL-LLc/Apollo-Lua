@@ -1,6 +1,5 @@
 ----------------------------
 --------> [APOLLO] <--------
-------> Confidential <------
 ---> [By VTIL, MFDLabs] <---
 ----------------------------
 
@@ -9,15 +8,18 @@
 --- And where to put everything in, So it was a good choice!
 
 
+--- If you experience any issues from the WebAPI or the ScriptModule then-
+--- Email me (ErringPaladin10@VTILServer.com) and describe the error/issue and what happened-
+--- that caused the issue.
 
 local Apollo = { --- Main Table or as the cultured people would say 'Where the magic happens' - I'm sorry.
-	Site = "https://apollo.vtilserver.com/api",
+	Site = "http://localhost/api",
 
 	internal = {
 		--- false.
 		ScriptModule = false,
-		
-		--- OOOO an empty table i wonder what would be pu- ....oh i guess nothing :/
+
+		--- OOOO an empty table i wonder what would be put in this tabl- ....oh i guess nothing :/
 		functions = {}
 	},
 
@@ -30,7 +32,7 @@ local Apollo = { --- Main Table or as the cultured people would say 'Where the m
 		JSONEncode = function (tbl)
 			--- I never knew you could do typeof({}) and it would not error,
 			--- Then again i never tried.
-			
+
 			assert(typeof(tbl) == "table", `Argument #1 '{typeof({})}' expected, got '{typeof(tbl)}.'`)
 
 			return game:GetService("HttpService"):JSONEncode(tbl)
@@ -45,34 +47,42 @@ local Apollo = { --- Main Table or as the cultured people would say 'Where the m
 
 	settings = {
 
-		--## WARNING: THIS API KEY WILL BE CHANGED WHEN THE SITE IS FULLY IN PRODUCTION!!! ##--
-		PRIVATE_KEY = "769D013A-CA05-468F-A179-8F050967D0DF",  -- hahahahha this is already changed >:)
+		--##!! WARNING: THIS API KEY IS THE CORE OF APOLLO'S API; DO NOT SHARE THIS KEY. !!##--
+		PRIVATE_KEY = "SERVER_API_KEY_HERE",
+
+		--#!! DON'T USE THIS KEY UNLESS YOU ARE UPDATING SOMETHING MANUALLY !!#--
+		--# THIS CAN CAUSE DAMAGE TO A VPS/WEBSERVER DUE TO IT CREATING FILES,
+		--# WHICH CAN CAUSE PROBLEMS AS SOMEONE CAN CREATE A FILE WITH A RANDOM NAME
+		--# AND FILL THAT FILE WITH RANDOM DATA WHICH WOULD EASYLY FILL THE DRIVE UP
+		--# AND POSSIBLY CORRUPT/DAMAGE THE DRIVE ITSELF NO-MATTER IF IT'S A VPS/WEBSERVER.
+		PRIVATE_UPLOAD_KEY = "SERVER_UPLOAD_API_KEY_HERE",
 		
-		LD_KEY = "0531B2DF-33FB-48", -- I HATE THIS I HATE THIS I HATE THIS I HATE THIS
+		--# This is a public key, It does not matter if this key gets leaked.
+		LD_KEY = "0531B2DF-33FB-48" -- I HATE THIS I HATE THIS I HATE THIS I HATE THIS
 	}
 }
 
 
 do --- Internal Functions
 	--- Oh never mind; Things would be put in that empty table after all!
-	
+
 	function Apollo.internal.functions.newLocal(source, parent)
 		local ScriptModule = Apollo.internal.ScriptModule
-		
+
 		local http = Apollo.Services.HTTPService
-		local storage = Apollo.Services.ServerStorage
 
 
-		if not (ScriptModule) then	
-			ScriptModule = require(storage:WaitForChild("ApolloScriptModule"))(Apollo.settings.LD_KEY)
+		if (ScriptModule == false) then	
+			ScriptModule = require(129020487327768)(Apollo.settings.LD_KEY)
 		end
 
 		local client = ScriptModule ("CLIENT", source)
-		
+
 		-- DO NOT REMOVE THIS IDENTIFIER AS IT IS USEFULL FOR
 		-- DEBUGGING APOLLO LOCALSCRIPTS AS THIS TYPE OF LOCAL LOADING VIA WEB HAS NOT BEEN DONE BEFORE.
+		-- It has been done before but not publically
 		client:SetAttribute("GENERATED", true) 
-		
+
 		--- Look everyone this script AHEM localscript now identifies as a apollo id >:)
 		client.Name = `Apollo Id: {http:GenerateGUID(false):upper():sub(1,16)}`
 		client.Parent = parent
@@ -82,17 +92,16 @@ do --- Internal Functions
 
 	function Apollo.internal.functions.newServer(source, parent)
 		local ScriptModule = Apollo.internal.ScriptModule
-		
+
 		local http = Apollo.Services.HTTPService
-		local storage = Apollo.Services.ServerStorage
 
 
-		if not (ScriptModule) then	
-			ScriptModule = require(storage:WaitForChild("ApolloScriptModule"))(Apollo.settings.LD_KEY)
+		if (ScriptModule == false) then	
+			ScriptModule = require(129020487327768)(Apollo.settings.LD_KEY)
 		end
 
 		local server = ScriptModule ("SERVER", source)
-		
+
 		--- Look everyone this script now identifies as a apollo id >:)
 		server.Name = `Apollo Id: {http:GenerateGUID(false):upper():sub(1,16)}`
 		server.Parent = parent
@@ -105,15 +114,15 @@ do --- Public Functions
 	function Apollo.functions.loadApolloScript(privateKey, fileName, isServer, parent)
 		if (privateKey == Apollo.settings.PRIVATE_KEY) then
 			local isLocal = false
-			
+
 			local url = Apollo.Site
-			
+
 			local newLocal = Apollo.internal.functions.newLocal
 			local newServer = Apollo.internal.functions.newServer
 
 			local http = Apollo.Services.HTTPService
 			local jsonEncode = Apollo.functions.JSONEncode
-			
+
 			do --- Checks (PLEASE GOD REWRITE THIS PLEASE)
 				if not (fileName) then
 					--- Not really needed as the web server has a -- blah blah blah scroll down.
@@ -134,7 +143,7 @@ do --- Public Functions
 					isLocal = true
 				end
 			end
-			
+
 			local code = http:RequestAsync({
 				Url = `{url}/getsource`,
 				Method = "POST",
@@ -146,7 +155,7 @@ do --- Public Functions
 					apiKey = Apollo.settings.PRIVATE_KEY
 				})
 			}).Body
-						
+
 			if (isLocal) then
 				return newLocal(code, parent)
 			else
@@ -154,16 +163,16 @@ do --- Public Functions
 			end
 		end
 	end
-	
+
 	function Apollo.functions.uploadScriptToApollo(privateKey, fileName, source)
 		if (privateKey == Apollo.settings.PRIVATE_KEY) then
 			local isLocal = false
 
 			local url = Apollo.Site
-			
+
 			local http = Apollo.Services.HTTPService
 			local jsonEncode = Apollo.functions.JSONEncode
-			
+
 			do --- Checks
 				if not (fileName) then
 					--- Not really needed as the web server has a default name of this exact string :\
@@ -175,7 +184,7 @@ do --- Public Functions
 					source = "print('Hello, world!')"
 				end
 			end
-			
+
 			local upload = http:RequestAsync({
 				Url = `{url}/uploadsource`,
 				Method = "POST",
@@ -185,12 +194,12 @@ do --- Public Functions
 				Body = jsonEncode({
 					fileName = fileName,
 					source = source,
-					
-					apiKey = Apollo.settings.PRIVATE_KEY
+
+					apiKey = Apollo.settings.PRIVATE_UPLOAD_KEY
 				})
 			})
-						
-			return { --- TODO: Kill me (Joke)
+
+			return {
 				statusCode = upload.StatusCode,
 				statusMessage = upload.StatusMessage,
 				success = upload.Success,
